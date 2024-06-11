@@ -1,0 +1,60 @@
+train:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  data_files:
+      _target_: modules.processing.multi_glob
+      paths: 
+          - /home/datalab/nfs/fusion/data/geo/dataset/fold=0/part-*
+          - /home/datalab/nfs/fusion/data/geo/dataset/fold=1/part-*
+          - /home/datalab/nfs/fusion/data/geo/dataset/fold=2/part-*
+          - /home/datalab/nfs/fusion/data/geo/dataset/fold=3/part-*
+  i_filters:
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 25
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      drop_feature_names: 
+        - inn
+        - bcard_target_seq
+        - cred_target_seq
+        - zp_target_seq
+        - acquiring_target_seq
+    - _target_: modules.processing.TimeProc
+      time_col: event_time
+    - _target_: ptls.data_load.iterable_processing.CategorySizeClip
+      category_max_size:
+        geohash_4: 9999
+        geohash_5: 9999
+        geohash_6: 9999
+        weekday: 7
+        hour: 24
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+  shuffle_files: true
+valid:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  data_files: 
+      _target_: modules.processing.multi_glob
+      paths: 
+          - /home/datalab/nfs/fusion/data/geo/dataset/fold=4/part-*
+  i_filters:
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 25
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      drop_feature_names: 
+        - inn
+        - bcard_target_seq
+        - cred_target_seq
+        - zp_target_seq
+        - acquiring_target_seq
+    - _target_: modules.processing.TimeProc
+      time_col: event_time
+    - _target_: ptls.data_load.iterable_processing.CategorySizeClip
+      category_max_size:
+        geohash_4: 9999
+        geohash_5: 9999
+        geohash_6: 9999
+        weekday: 7
+        hour: 24
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch

@@ -1,0 +1,14 @@
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet
+  - seq_encoder/geo_agg_seq_encoder
+  - inference/inference_agg
+  - downstream/downstream
+
+seed_everything: 42
+logger_name: geo_agg
+model_path: ${logger_name}.p
+embed_file_name: agg_inner_geo
+
+pl_module:
+    seq_encoder: ${seq_encoder/seq_encoder}

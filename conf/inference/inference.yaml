@@ -1,0 +1,43 @@
+num_workers: 0
+batch_size: 32
+gpus: 1
+use_save_model: True
+multimodal: False
+dataset_train:
+     _target_: ptls.data_load.datasets.ParquetDataset
+     data_files: 
+          - /home/jovyan/mollaev/prepr_data/trx_train_prepr.parquet
+     i_filters:
+     - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+       max_seq_len: 1024
+     - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+       keep_feature_names: 
+        - client_id
+        - target_1
+        - target_2
+        - target_3
+        - target_4
+     - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+     - _target_: modules.processing.GetSplit
+       start_month: 1 
+       end_month: 12
+       #year: 2022
+       col_id: client_id
+dataset_test:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files: 
+          - /home/jovyan/mollaev/prepr_data/trx_train_prepr.parquet
+    i_filters:
+        - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+          max_seq_len: 1024
+        - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+          keep_feature_names: 
+            - client_id
+            - target_1
+            - target_2
+            - target_3
+            - target_4
+        - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+output:
+  path: ${embed_file_name}
+  format: parquet

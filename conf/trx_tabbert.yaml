@@ -1,0 +1,83 @@
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_tab_trx
+  - inference/inference
+  - downstream/downstream
+
+seed_everything: 42
+logger_name: trx_tabbert
+model_path: ${logger_name}.p
+embed_file_name: ${logger_name}.p
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.tabformer.TabformerIterableDataset
+    data: ${dataset_unsupervised.train}
+    max_len: 300
+    min_len: 50
+  valid_data:
+    _target_: ptls.frames.tabformer.TabformerIterableDataset
+    data: ${dataset_unsupervised.valid}
+    max_len: 300
+    min_len: 50
+  train_batch_size: 256
+  train_num_workers: 8
+  valid_batch_size: 128
+  valid_num_workers: 16
+  
+trainer:
+  gpus: 1
+  auto_select_gpus: false
+  limit_val_batches: 5000
+  max_epochs: 20
+  deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  gradient_clip_val: 0.1
+  
+pl_module:
+  _target_: ptls.frames.tabformer.TabformerPretrainModule
+  total_steps: 120000
+  mask_prob: 0.2
+  feature_encoder: 
+    _target_: ptls.nn.TabFormerFeatureEncoder
+    n_cols: 9
+    emb_dim: 24
+  seq_encoder:
+    _target_: ptls.nn.TransformerEncoder
+    n_heads: 4
+    n_layers: 4
+    input_size: 216
+    use_positional_encoding: false
+  trx_encoder:
+    _target_: ptls.nn.TrxEncoder
+    norm_embeddings: false
+    embeddings_noise: 0.003
+    embeddings:
+        event_type: 
+            in: 58
+            out: 24
+        event_subtype: 
+            in: 59
+            out: 24
+        src_type11: 
+            in: 85
+            out: 24
+        src_type12: 
+            in: 349
+            out: 24
+        dst_type11: 
+            in: 84
+            out: 24
+        dst_type12: 
+            in: 417
+            out: 24
+        src_type22: 
+            in: 90
+            out: 24
+        src_type32: 
+            in: 91
+            out: 24
+        amount: 
+            in: 8
+            out: 24

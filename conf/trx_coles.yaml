@@ -1,0 +1,99 @@
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet
+  - inference/inference
+  - downstream/downstream
+seed_everything: 42
+logger_name: trx_coles
+model_path: /home/jovyan/mollaev/MBD/models/${logger_name}.p
+embed_file_name: /home/jovyan/mollaev/embed/${logger_name}
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 256
+  train_num_workers: 8
+  valid_batch_size: 128
+  valid_num_workers: 16
+  
+trainer:
+  gpus: 1
+  auto_select_gpus: false
+  max_epochs: 20
+  limit_val_batches: 5000
+  gradient_clip_val: 0.5
+  deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  
+pl_module:
+  _target_: ptls.frames.coles.CoLESModule
+  validation_metric:
+    _target_: ptls.frames.coles.metric.BatchRecallTopK
+    K: 4
+    metric: cosine
+  seq_encoder:
+    _target_: ptls.nn.RnnSeqEncoder
+    trx_encoder:
+      _target_: ptls.nn.TrxEncoder
+      #norm_embeddings: false
+      embeddings_noise: 0.003
+      embeddings:
+        event_type:
+          in: 58
+          out: 24
+        event_subtype:
+          in: 59
+          out: 24
+        src_type11:
+          in: 85
+          out: 24
+        src_type12:
+          in: 349
+          out: 24
+        dst_type11:
+          in: 84
+          out: 24
+        dst_type12:
+          in: 417
+          out: 12
+        src_type22:
+          in: 90
+          out: 24
+        src_type32:
+          in: 91
+          out: 24
+      numeric_values:
+        amount: log
+    type: gru
+    hidden_size: 256
+    #bidir: false
+    #trainable_starter: static
+#  head:
+#    _target_: ptls.nn.L2NormEncoder
+#  loss:
+#    _target_: ptls.frames.coles.losses.SoftmaxLoss
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+    weight_decay: 1e-4
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 3
+    gamma: 0.9025
