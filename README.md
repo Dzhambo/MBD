@@ -28,6 +28,7 @@ In this paper, we present the industrial-scale publicly available multimodal ban
 1. Start with preprocessing data in 'notebooks/Preprocessing'
 2. To conduct experiments, you need to execute bash scripts. For instance, to run the CoLES method for the transactions modality, use the following command: **bash trx_coles.sh**. Alternatively, you can use the corresponding Jupyter notebook in **notebooks**.
 3. For the late fusion approaches and matching task use 'notebooks/Fusion'
+4. To obtain the results, execute the following command: **bash evaluate.sh**, specifying the desired file with scores.
 
 ## Environment
 
