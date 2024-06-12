@@ -7,8 +7,26 @@ Financial organizations collect a huge amount of data about clients that typical
 
 In this paper, we present the industrial-scale publicly available multimodal banking dataset, MBD, that contains more than 1M clients with several modalities: 215M bank transactions, 670M geo position events, 1.5M embeddings of dialogues with technical support and monthly aggregated purchases of four bank's products. All entries are properly anonymized from real proprietary bank data. Using this dataset, we introduce a novel benchmark with two business tasks: campaigning (purchase prediction in the next month) and matching of clients. We provide numerical results that demonstrate the superiority of our multi-modal baselines over single-modal techniques for each task. As a result, the proposed dataset can open new perspectives and facilitate the future development of practically important large-scale multimodal algorithms for event sequences.
 
+## Structure of repo
+
+- **notebooks** 
+    - **Preprocessing** - data preprocessing for each modality for subsequent training and testing
+    - **Geo**, **Trx**, ***Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
+    - **LateFusion** - late fusion approaches: Concatenation and Blending. Python and PySpark code for training Gradient Boosting models are provided.
+
+- **scripts**  
+    - we use a hydra-based experiment configuration structure.
+    - run unimodal experiments for methods: Aggregation, CoLES, TabBert, TabGPT, for modalities geostream and transactions
+    - run experiments for late fusion for pair modalities
+
+
 ## Usage
 
+To conduct experiments, you need to execute bash scripts. For instance, to run the CoLES method for the transactions modality, use the following command: **bash trx_coles.sh**
+
+## Environment
+
+pip install -r requirements.txt
 
 
-## Configs structure
+
