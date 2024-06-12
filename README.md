@@ -11,8 +11,11 @@ In this paper, we present the industrial-scale publicly available multimodal ban
 
 - **notebooks** 
     - **Preprocessing** - data preprocessing for each modality for subsequent training and testing
-    - **Geo**, **Trx**, ***Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
-    - **LateFusion** - late fusion approaches: Concatenation and Blending. Python and PySpark code for training Gradient Boosting models are provided.
+    - **Geo**, **Trx**, **Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
+    - **Fusion** - 
+        - late fusion approaches: Concatenation and Blending.
+        - Python and PySpark code for training Gradient Boosting models are provided. 
+        - Multimodal matching task
 
 - **scripts**  
     - we use a hydra-based experiment configuration structure.
@@ -22,7 +25,9 @@ In this paper, we present the industrial-scale publicly available multimodal ban
 
 ## Usage
 
-To conduct experiments, you need to execute bash scripts. For instance, to run the CoLES method for the transactions modality, use the following command: **bash trx_coles.sh**. Alternatively, you can use the corresponding Jupyter notebook in **notebooks**.
+1. Start with preprocessing data in 'notebooks/Preprocessing'
+2. To conduct experiments, you need to execute bash scripts. For instance, to run the CoLES method for the transactions modality, use the following command: **bash trx_coles.sh**. Alternatively, you can use the corresponding Jupyter notebook in **notebooks**.
+3. For the late fusion approaches and matching task use 'notebooks/Fusion'
 
 ## Environment
 

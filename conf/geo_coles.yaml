@@ -1,12 +1,12 @@
 defaults:
   - _self_
-  - dataset_unsupervised/parquet
-  - inference/inference
+  - dataset_unsupervised/parquet_geo
+  - inference/inference_geo
   - downstream/downstream
 seed_everything: 42
 logger_name: geo_coles
-model_path: /home/jovyan/mollaev/MBD/models/${logger_name}.p
-embed_file_name: /home/jovyan/mollaev/embed/${logger_name}
+model_path: ../models/${logger_name}.p
+embed_file_name: ${logger_name}
 
 data_module:
   _target_: ptls.frames.PtlsDataModule

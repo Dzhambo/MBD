@@ -1,13 +1,13 @@
 defaults:
   - _self_
   - dataset_unsupervised/parquet_tab_trx
-  - inference/inference
+  - inference/inference_trx
   - downstream/downstream
 
 seed_everything: 42
-logger_name: gpt_inner_trx
-model_path: ${logger_name}.p
-embed_file_name: gpt_inner_trx
+logger_name: trx_tabgpt
+model_path: ../models/${logger_name}.p
+embed_file_name: ${logger_name}
 
 data_module:
   _target_: ptls.frames.PtlsDataModule

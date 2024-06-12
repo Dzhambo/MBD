@@ -1,7 +1,7 @@
 train:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - /home/jovyan/mollaev/prepr_data/trx_train_prepr.parquet
+    - trx_train_prepr.parquet
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
@@ -33,7 +33,7 @@ train:
 valid:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - /home/jovyan/mollaev/prepr_data/trx_test_prepr.parquet
+    - trx_test_prepr.parquet
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32

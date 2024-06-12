@@ -1,12 +1,12 @@
 defaults:
   - _self_
   - dataset_unsupervised/parquet_tab_trx
-  - inference/inference
+  - inference/inference_trx
   - downstream/downstream
 
 seed_everything: 42
 logger_name: trx_tabbert
-model_path: ${logger_name}.p
+model_path: ../models/${logger_name}.p
 embed_file_name: ${logger_name}.p
 
 data_module:

@@ -5,8 +5,8 @@ defaults:
   - downstream/downstream
 
 seed_everything: 42
-logger_name: trx_tabbert
-model_path: ${logger_name}.p
+logger_name: geo_tabbert
+model_path: ../models/${logger_name}.p
 embed_file_name: ${logger_name}
 
 data_module:

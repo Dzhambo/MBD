@@ -6,7 +6,7 @@ multimodal: False
 dataset_train:
      _target_: ptls.data_load.datasets.ParquetDataset
      data_files: 
-          - /home/jovyan/mollaev/prepr_data/trx_train_prepr.parquet
+          - trx_train_prepr.parquet
      i_filters:
      - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
        max_seq_len: 1024
@@ -21,12 +21,11 @@ dataset_train:
      - _target_: modules.processing.GetSplit
        start_month: 1 
        end_month: 12
-       #year: 2022
        col_id: client_id
 dataset_test:
     _target_: ptls.data_load.datasets.ParquetDataset
     data_files: 
-          - /home/jovyan/mollaev/prepr_data/trx_train_prepr.parquet
+          - trx_train_prepr.parquet
     i_filters:
         - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
           max_seq_len: 1024
