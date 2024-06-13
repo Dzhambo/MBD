@@ -26,10 +26,6 @@ This repository contains code to reproduce the benchmark results obtained in the
     - `*.py` files with different pipelines
     - `*.sh` files with configured pipeline runs
 
-<!--   - we use a hydra-based experiment configuration structure.
-    - run unimodal experiments for methods: Aggregation, CoLES, TabBert, TabGPT, for modalities geostream and transactions
-    - run experiments for late fusion for pair modalities 
--->
 
 ## Hardware and software requirements
 
