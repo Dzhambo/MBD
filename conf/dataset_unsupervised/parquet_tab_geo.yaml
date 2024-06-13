@@ -1,7 +1,7 @@
 train:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_train_prepr.parquet
+    - geo_train_prepr.parquet
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
@@ -24,7 +24,7 @@ train:
 valid:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_test_prepr.parquet
+    - geo_test_prepr.parquet
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32

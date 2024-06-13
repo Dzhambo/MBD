@@ -25,7 +25,7 @@ dataset_train:
 dataset_test:
     _target_: ptls.data_load.datasets.ParquetDataset
     data_files: 
-          - trx_train_prepr.parquet
+          - trx_test_prepr.parquet
     i_filters:
         - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
           max_seq_len: 128
