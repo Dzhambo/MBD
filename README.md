@@ -35,6 +35,7 @@ This repository contains code to reproduce the benchmark results obtained in the
 
 You should use a server with at least one GPU 32GB, 4 CPU cores, 96GB RAM.
 
+
 Nvidia drivers should be installed.
 
 Since benchmark are using spark, java must be installed.
