@@ -14,6 +14,7 @@ This repository contains code to reproduce the benchmark results obtained in the
 
 - **conf** - all configuration files
 - **modules** - common code for the model pipelines
+- **models** - models are saved here.
 - **notebooks** 
     - **Preprocessing** - data preprocessing for each modality for subsequent training and testing
     - **Geo**, **Trx**, **Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
