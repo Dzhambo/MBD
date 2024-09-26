@@ -1,12 +1,15 @@
 train:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - geo_train_prepr.parquet
+    - geo/fold=0
+    - geo/fold=1
+    - geo/fold=2
+    - geo/fold=3
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
     - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-      max_seq_len: 1024
+      max_seq_len: 4096
     - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
       drop_feature_names: 
         - client_id
@@ -16,20 +19,20 @@ train:
         - target_4
     - _target_: ptls.data_load.iterable_processing.CategorySizeClip
       category_max_size:
-        geohash_4: 9999
-        geohash_5: 9999
-        geohash_6: 9999
+        geohash_4: 4999
+        geohash_5: 4999
+        geohash_6: 4999
     - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
   shuffle_files: true
 valid:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - geo_test_prepr.parquet
+    - geo/fold=4
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
     - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-      max_seq_len: 1024
+      max_seq_len: 4096
     - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
       drop_feature_names: 
         - client_id
@@ -39,7 +42,7 @@ valid:
         - target_4
     - _target_: ptls.data_load.iterable_processing.CategorySizeClip
       category_max_size:
-        geohash_4: 9999
-        geohash_5: 9999
-        geohash_6: 9999
+        geohash_4: 4999
+        geohash_5: 4999
+        geohash_6: 4999
     - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch

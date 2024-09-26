@@ -9,6 +9,21 @@ from ptls.data_load.iterable_processing_dataset import IterableProcessingDataset
 from datetime import datetime
 from ptls.data_load.padded_batch import PaddedBatch
 
+class QuantilfyAmount(IterableProcessingDataset):
+    def __init__(self):
+        super().__init__()
+        self.quantiles = [0., 267.6, 1198.65, 3667.2, 8639.8, 18325.7, 36713.2, 68950.3, 143969.1, 421719.1]
+    
+    def __iter__(self):
+        for rec in self._src:
+            features = rec[0] if type(rec) is tuple else rec
+            amount = features['amount']
+            am_quant = torch.zeros(len(amount), dtype=torch.int)
+            for i, q in enumerate(self.quantiles):
+                am_quant = torch.where(amount>q, i, am_quant)
+            features['amount'] = am_quant
+            yield features
+
 
 class GetSplit(IterableProcessingDataset):
     def __init__(

@@ -1,12 +1,15 @@
 train:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_train_prepr.parquet
+    - trx/fold=0
+    - trx/fold=1
+    - trx/fold=2
+    - trx/fold=3
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
     - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-      max_seq_len: 1024
+      max_seq_len: 4096
     - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
       drop_feature_names: 
         - client_id
@@ -14,31 +17,29 @@ train:
         - target_2
         - target_3
         - target_4
-    - _target_: ptls.data_load.iterable_processing.FeatureBinScaler
-      feature_bins:
-          amount: [0.1783, 0.2350, 0.2589, 0.3690, 0.5132, 0.5557, 0.6401]
+    - _target_: modules.QuantilfyAmount
     - _target_: ptls.data_load.iterable_processing.CategorySizeClip
       category_max_size:
-        event_type: 57
-        event_subtype: 58
-        src_type11: 84
-        src_type12: 348
-        dst_type11: 83
-        dst_type12: 416
-        src_type22: 89
-        src_type32: 90
-        amount: 7
+        event_type: 58
+        event_subtype: 59
+        src_type11: 85
+        src_type12: 349
+        dst_type11: 84
+        dst_type12: 417
+        src_type22: 90
+        src_type32: 91
+        amount: 10
     - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
   shuffle_files: true
 valid:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_test_prepr.parquet
+    - trx/fold=4
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
     - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-      max_seq_len: 1024
+      max_seq_len: 4096
     - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
       drop_feature_names: 
         - client_id
@@ -46,18 +47,16 @@ valid:
         - target_2
         - target_3
         - target_4
-    - _target_: ptls.data_load.iterable_processing.FeatureBinScaler
-      feature_bins:
-          amount: [0.1783, 0.2350, 0.2589, 0.3690, 0.5132, 0.5557, 0.6401]
+    - _target_: modules.QuantilfyAmount
     - _target_: ptls.data_load.iterable_processing.CategorySizeClip
       category_max_size:
-        event_type: 57
-        event_subtype: 58
-        src_type11: 84
-        src_type12: 348
-        dst_type11: 83
-        dst_type12: 416
-        src_type22: 89
-        src_type32: 90
-        amount: 7
+        event_type: 58
+        event_subtype: 59
+        src_type11: 85
+        src_type12: 349
+        dst_type11: 84
+        dst_type12: 417
+        src_type22: 90
+        src_type32: 91
+        amount: 10
     - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch

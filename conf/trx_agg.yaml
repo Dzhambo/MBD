@@ -1,14 +1,43 @@
 defaults:
   - _self_
   - dataset_unsupervised/parquet_trx
-  - seq_encoder/trx_agg_seq_encoder
   - inference/inference_agg_trx
-  - downstream/downstream
+
 
 seed_everything: 42
 logger_name: trx_agg
-model_path: ../models/${logger_name}.p
+model_path: models/${logger_name}.p
 embed_file_name: ${logger_name}
 
 pl_module:
-    seq_encoder: ${seq_encoder.seq_encoder}
+    seq_encoder:
+    _target_: ptls.nn.AggFeatureSeqEncoder
+    embeddings:
+        event_type:
+          in: 58
+          out: 24
+        event_subtype:
+          in: 59
+          out: 24
+        src_type11:
+          in: 85
+          out: 24
+        src_type12:
+          in: 349
+          out: 24
+        dst_type11:
+          in: 84
+          out: 24
+        dst_type12:
+          in: 417
+          out: 12
+        src_type22:
+          in: 90
+          out: 24
+        src_type32:
+          in: 91
+          out: 24
+    numeric_values:
+      amount: log
+    was_logified: false
+    log_scale_factor: 1

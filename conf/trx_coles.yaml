@@ -2,10 +2,10 @@ defaults:
   - _self_
   - dataset_unsupervised/parquet_trx
   - inference/inference_trx
-  - downstream/downstream
+
 seed_everything: 42
 logger_name: trx_coles
-model_path: ../models/${logger_name}.p
+model_path: models/${logger_name}.p
 embed_file_name: ${logger_name}
 
 data_module:
@@ -26,19 +26,20 @@ data_module:
       cnt_min: 32
       cnt_max: 180
     data: ${dataset_unsupervised.valid}
-  train_batch_size: 256
-  train_num_workers: 8
+  train_batch_size: 512
+  train_num_workers: 16
   valid_batch_size: 128
   valid_num_workers: 16
   
 trainer:
   gpus: 1
   auto_select_gpus: false
-  max_epochs: 20
+  max_epochs: 15
   limit_val_batches: 5000
   gradient_clip_val: 0.5
   deterministic: true
   checkpoints_every_n_val_epochs: 1
+  fast_dev_run: false
   
 pl_module:
   _target_: ptls.frames.coles.CoLESModule
@@ -81,17 +82,10 @@ pl_module:
         amount: log
     type: gru
     hidden_size: 256
-    #bidir: false
-    #trainable_starter: static
-#  head:
-#    _target_: ptls.nn.L2NormEncoder
-#  loss:
-#    _target_: ptls.frames.coles.losses.SoftmaxLoss
   optimizer_partial:
     _partial_: true
     _target_: torch.optim.AdamW
     lr: 0.001
-    weight_decay: 1e-4
   lr_scheduler_partial:
     _partial_: true
     _target_: torch.optim.lr_scheduler.StepLR

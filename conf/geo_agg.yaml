@@ -1,9 +1,7 @@
 defaults:
   - _self_
   - dataset_unsupervised/parquet_geo
-  - seq_encoder/geo_agg_seq_encoder
   - inference/inference_agg_geo
-  - downstream/downstream
 
 seed_everything: 42
 logger_name: geo_agg
@@ -11,4 +9,15 @@ model_path: ../models/${logger_name}.p
 embed_file_name: agg_geo
 
 pl_module:
-    seq_encoder: ${seq_encoder/seq_encoder}
+    seq_encoder:
+    _target_: ptls.nn.AggFeatureSeqEncoder
+    embeddings:
+      geohash_4:
+        in: 10000
+      geohash_5:
+        in: 10000
+      geohash_6:
+        in: 10000
+    was_logified: false
+    numeric_values: {}
+    log_scale_factor: 1

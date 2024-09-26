@@ -1,1 +1,0 @@
-python ../scripts/evaluate.py --ref_df_public public_target_new.parquet --ref_df_private /home/datalab/nfs/dataset_paper/data/targets/private_target_new.parquet --pred_df baseline_trx.csv --public_result_path public_score.txt --private_result_path private_score.txt

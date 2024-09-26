@@ -1,5 +1,5 @@
-num_workers: 0
-batch_size: 32
+num_workers: 16
+batch_size: 256
 gpus: 1
 use_save_model: True
 multimodal: False
@@ -9,7 +9,7 @@ dataset_train:
           - trx_train_prepr.parquet
      i_filters:
      - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-       max_seq_len: 1024
+       max_seq_len: 4096
      - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
        keep_feature_names: 
         - client_id
@@ -28,7 +28,7 @@ dataset_test:
           - trx_test_prepr.parquet
     i_filters:
         - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
-          max_seq_len: 1024
+          max_seq_len: 4096
         - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
           keep_feature_names: 
             - client_id
@@ -37,6 +37,10 @@ dataset_test:
             - target_3
             - target_4
         - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+        - _target_: modules.processing.GetSplit
+          start_month: 1 
+          end_month: 12
+          col_id: client_id
 output:
-  path: ${embed_file_name}
+  path: data/${embed_file_name}
   format: parquet

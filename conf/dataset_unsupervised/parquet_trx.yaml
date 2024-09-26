@@ -1,7 +1,10 @@
 train:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_train_prepr.parquet
+    - trx/fold=0
+    - trx/fold=1
+    - trx/fold=2
+    - trx/fold=3
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32
@@ -19,7 +22,7 @@ train:
 valid:
   _target_: ptls.data_load.datasets.ParquetDataset
   data_files: 
-    - trx_test_prepr.parquet
+    - trx/fold=4
   i_filters:
     - _target_: ptls.data_load.iterable_processing.SeqLenFilter
       min_seq_len: 32

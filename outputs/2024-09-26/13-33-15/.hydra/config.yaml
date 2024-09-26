@@ -1,0 +1,150 @@
+seed_everything: 42
+logger_name: geo_coles
+model_path: models/${logger_name}.p
+embed_file_name: ${logger_name}
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 256
+  train_num_workers: 16
+  valid_batch_size: 256
+  valid_num_workers: 16
+trainer:
+  gpus: 1
+  auto_select_gpus: false
+  max_epochs: 15
+  limit_val_batches: 5000
+  gradient_clip_val: 0.5
+  deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: true
+pl_module:
+  _target_: ptls.frames.coles.CoLESModule
+  validation_metric:
+    _target_: ptls.frames.coles.metric.BatchRecallTopK
+    K: 4
+    metric: cosine
+  seq_encoder:
+    _target_: ptls.nn.RnnSeqEncoder
+    trx_encoder:
+      _target_: ptls.nn.TrxEncoder
+      embeddings_noise: 0.003
+      embeddings:
+        geohash_4:
+          in: 10000
+          out: 64
+        geohash_5:
+          in: 10000
+          out: 64
+        geohash_6:
+          in: 10000
+          out: 64
+    type: gru
+    hidden_size: 256
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 3
+    gamma: 0.9025
+dataset_unsupervised:
+  train:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files:
+    - geo_train_prepr.parquet
+    i_filters:
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 32
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      drop_feature_names:
+      - client_id
+      - target_1
+      - target_2
+      - target_3
+      - target_4
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+    shuffle_files: true
+  valid:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files:
+    - geo_test_prepr.parquet
+    i_filters:
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 32
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      drop_feature_names:
+      - client_id
+      - target_1
+      - target_2
+      - target_3
+      - target_4
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+inference:
+  num_workers: 16
+  batch_size: 256
+  gpus: 1
+  use_save_model: true
+  multimodal: false
+  dataset_train:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files:
+    - geo_train_prepr.parquet
+    i_filters:
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      keep_feature_names:
+      - client_id
+      - target_1
+      - target_2
+      - target_3
+      - target_4
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+    - _target_: modules.processing.GetSplit
+      start_month: 1
+      end_month: 12
+      col_id: client_id
+  dataset_test:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files:
+    - geo_test_prepr.parquet
+    i_filters:
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+      keep_feature_names:
+      - client_id
+      - target_1
+      - target_2
+      - target_3
+      - target_4
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+    - _target_: modules.processing.GetSplit
+      start_month: 1
+      end_month: 12
+      col_id: client_id
+  output:
+    path: data/${embed_file_name}
+    format: parquet

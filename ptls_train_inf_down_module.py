@@ -12,7 +12,6 @@ import numpy as np
 from ptls.data_load.iterable_processing_dataset import IterableProcessingDataset
 from ptls.data_load.utils import collate_feature_dict
 
-from modules.downstream import Downstream
 from modules.processing import collate_feature_dict_with_target
 from modules.inference_module import InferenceModuleMultimodal
 from ptls.frames.inference_module import InferenceModule
@@ -81,13 +80,11 @@ def train_module(conf: DictConfig):
     if 'model_path' in conf:
         if _use_best_epoch:
             model.load_from_checkpoint(checkpoint_callback.best_model_path)
-            torch.save(model.seq_encoder.state_dict(), conf.model_path)
-            #torch.save(model.seq_encoder, conf.model_path)
+            torch.save(model.state_dict(), conf.model_path)
             logging.info(f'Best model stored in "{checkpoint_callback.best_model_path}" '
                          f'and copied to "{conf.model_path}"')
         else:
-            torch.save(model.seq_encoder.state_dict(), conf.model_path)
-            #torch.save(model.seq_encoder, conf.model_path)
+            torch.save(model.state_dict(), conf.model_path)
             logger.info(f'Model weights saved to "{conf.model_path}"')
 
 def inference_module(conf):
@@ -111,13 +108,9 @@ def inference_module(conf):
         batch_size=conf.inference.get('batch_size', 128),
     )
     
-    model = hydra.utils.instantiate(conf.pl_module)#.seq_encoder)
-    if conf.inference.get('use_save_model', False):
-        #print(torch.load(conf.model_path))
-        model.seq_encoder.load_state_dict(torch.load(conf.model_path))
-        #model.load_state_dict(torch.load(conf.model_path))
-        model = model.seq_encoder
-        #model = torch.load(conf.model_path)
+    model = hydra.utils.instantiate(conf.pl_module)
+    if conf.inference.get('use_save_model', True):
+        model.load_state_dict(torch.load(conf.model_path))
 
     inf_module = InferenceModuleMultimodal(
         model=model,
@@ -151,26 +144,9 @@ def inference_module(conf):
     )
     
     logger.info('Save test embeddings...')
-    
     inf_test_embeddings.to_parquet(f"{conf.inference.output.path}/test.parquet", index=False, engine="pyarrow", compression="snappy")
     del inf_test_embeddings
 
-
-def downstream(conf):
-    metric = hydra.utils.instantiate(conf.downstream.metric)
-    downstream = Downstream(
-        metric=metric,
-        train_path=f"{conf.inference.output.path}/train.parquet",
-        test_path=f"{conf.inference.output.path}/test.parquet",
-        col_id='client_id',
-        model_conf=conf.downstream.model,
-        logger=logger,
-        name_exp=conf.get('logger_name'),
-        result_path=conf.downstream.output,
-    )
-
-    scores = downstream.run()
-    return scores
     
     
 @hydra.main(version_base='1.2', config_path=None)
@@ -179,13 +155,7 @@ def main(conf: DictConfig):
     train_module(conf)
     logger.info('Start inference...')
     inference_module(conf)
-    logger.info('Start downstream...')
-    scores = downstream(conf)
-    return scores
     
-    
-
-
 if __name__ == '__main__':
     main()
 

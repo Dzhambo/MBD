@@ -1,1 +1,1 @@
-python ptls_train_inf_down_module.py --config-dir ../conf --config-name trx_gpt
+python ptls_train_inf_down_module.py --config-dir conf --config-name trx_gpt
