@@ -3,8 +3,9 @@
 ## Abstract
 
 Financial organizations collect a huge amount of data about clients that typically has a temporal (sequential) structure and is collected from various sources (modalities). Due to privacy issues, there are no large-scale open-source multimodal datasets of event sequences, which significantly limits the research in this area.
+In this paper, we present the industrial-scale publicly available multimodal banking dataset, MBD, that contains more than 1.5M corporate clients with several modalities: 950M bank transactions, 1B geo position events, 5M embeddings of dialogues with technical support and monthly aggregated purchases of four bank's products. All entries are properly anonymized from real proprietary bank data. Using this dataset, we introduce a novel benchmark with two business tasks: campaigning (purchase prediction in the next month) and matching of clients. We provide numerical results that demonstrate the superiority of our multi-modal baselines over single-modal techniques for each task. As a result, the proposed dataset can open new perspectives and facilitate the future development of practically important large-scale multimodal algorithms for event sequences. 
 
-In this paper, we present the industrial-scale publicly available multimodal banking dataset, MBD, that contains more than 1M clients with several modalities: 215M bank transactions, 670M geo position events, 1.5M embeddings of dialogues with technical support and monthly aggregated purchases of four bank's products. All entries are properly anonymized from real proprietary bank data. Using this dataset, we introduce a novel benchmark with two business tasks: campaigning (purchase prediction in the next month) and matching of clients. We provide numerical results that demonstrate the superiority of our multi-modal baselines over single-modal techniques for each task. As a result, the proposed dataset can open new perspectives and facilitate the future development of practically important large-scale multimodal algorithms for event sequences.
+HuggingFace Link: \url{https://huggingface.co/datasets/ai-lab/MBD}
 
 ## Benchmark
 
@@ -24,7 +25,6 @@ This repository contains code to reproduce the benchmark results obtained in the
         - Multimodal matching task
 
 - **scripts**  
-    - `*.py` files with different pipelines
     - `*.sh` files with configured pipeline runs
 
 
