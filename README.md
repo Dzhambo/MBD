@@ -4,7 +4,10 @@
 
 Financial organizations collect a huge amount of data about clients that typically has a temporal (sequential) structure and is collected from various sources (modalities). Due to privacy issues, there are no large-scale open-source multimodal datasets of event sequences, which significantly limits the research in this area. In this paper, we present the industrial-scale publicly available multimodal banking dataset, MBD, that contains more than 2M corporate clients with several modalities: 950M bank transactions, 1B geo position events, 5M embeddings of dialogues with technical support and monthly aggregated purchases of four bank’s products. All entries are properly anonymized from real proprietary bank data. Using this data, we introduce a novel multimodal benchmark that incorporates two open-source finansical datasets. We provide numerical results demonstrating our multimodal baselines’ superiority over single-modal techniques for each task. As a result, the proposed dataset and benchmark can open new perspectives and facilitate the future development of practically important large-scale multimodal algorithms for event sequences. 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2d3205ef68c13634fd06b5f4a98a0153884190f9
 ## Benchmark
 
 This repository contains code to reproduce the benchmark results obtained in the paper.
