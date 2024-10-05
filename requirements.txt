@@ -1,7 +1,9 @@
-pytorch-lifestream == 0.6.1
+pytorch-lifestream==0.6.0
 tensorboard >=2.1.0
-pyspark
-hydra
-pytorch_lightning
-lightgbm >= 2.3.1
-xgboost >=0.90
+pyspark==3.3.0
+hydra-core==1.2.0
+pytorch_lightning==2.3.3
+lightgbm==3.3.2
+xgboost==1.6.2
+matplotlib
+seqborn
