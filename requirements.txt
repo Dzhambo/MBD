@@ -6,4 +6,4 @@ pytorch_lightning==2.3.3
 lightgbm==3.3.2
 xgboost==1.6.2
 matplotlib
-seqborn
+seaborn
