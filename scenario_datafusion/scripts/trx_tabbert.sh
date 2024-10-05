@@ -1,0 +1,1 @@
+python ptls_train_inf_down_module.py --config-dir  scenario_datafusion/conf --config-name trx_tabbert

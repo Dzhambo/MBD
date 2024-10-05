@@ -1,0 +1,74 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_tab_trx
+  - inference/inference_tab_trx
+  - downstream/downstream
+  
+seed_everything: 42
+logger_name: trx_tabgpt_${fold}
+model_path: scenario_datafusion/models/${logger_name}.p
+embed_file_name: ${logger_name}
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.gpt.gpt_dataset.GptIterableDataset
+    data: ${dataset_unsupervised.train}
+    max_len: 300
+    min_len: 80
+  valid_data:
+    _target_: ptls.frames.gpt.gpt_dataset.GptIterableDataset
+    data: ${dataset_unsupervised.valid}
+    max_len: 300
+    min_len: 80
+  train_batch_size: 512
+  train_num_workers: 16
+  valid_batch_size: 128
+  valid_num_workers: 16
+
+  
+trainer:
+  accelerator: gpu
+  limit_val_batches: 5000
+  max_epochs: 30
+  deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  gradient_clip_val: 0.1
+  fast_dev_run: false
+  
+pl_module:
+  _target_: modules.gpt_model.CorrGptPretrainModule
+  total_steps: 1500
+  inference_pooling_strategy: trx_stat_out
+  feature_encoder: 
+    _target_: ptls.nn.TabFormerFeatureEncoder
+    n_cols: 5
+    emb_dim: 24
+  seq_encoder:
+    _target_: ptls.nn.TransformerEncoder
+    n_heads: 2
+    n_layers: 2
+    input_size: 120
+    use_positional_encoding: true
+  trx_encoder:
+    _target_: ptls.nn.TrxEncoder
+    norm_embeddings: false
+    embeddings_noise: 0.003
+    numeric_values: {}
+    embeddings:
+      mcc_code:
+        in: 350
+        out: 24
+      currency_rk:
+        in: 10
+        out: 24
+      transaction_amt:
+        in: 11
+        out: 24
+      hour:
+        in: 25
+        out: 24
+      weekday:
+        in: 8
+        out: 24

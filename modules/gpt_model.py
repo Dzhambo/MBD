@@ -4,11 +4,12 @@ from ptls.frames.gpt.gpt_module import GptPretrainModule
 
 
 class CorrGptPretrainModule(GptPretrainModule):
-    def __init__(self, feature_encoder, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, feature_encoder, seq_encoder, trx_encoder, *args, **kwargs):
+        trx_encoder.numeric_values = {}
+        super().__init__(trx_encoder=trx_encoder, seq_encoder=seq_encoder, *args, **kwargs)
         self.save_hyperparameters(ignore=['trx_encoder', 'seq_encoder', 'feature_encoder'])
         self.feature_encoder = feature_encoder
-    
+
     def forward(self, batch):
         z_trx = self.trx_encoder(batch)
         payload = z_trx.payload.view(z_trx.payload.shape[:-1] + (-1, 24))

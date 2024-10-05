@@ -1,0 +1,36 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_click
+  - inference/inference_click
+  - downstream/downstream
+
+seed_everything: 42
+logger_name: click_agg_${fold}
+model_path: scenario_datafusion/models/${logger_name}.p
+embed_file_name: ${logger_name}
+
+training_run: false
+use_save_model: false
+
+pl_module:
+    _target_: ptls.nn.AggFeatureSeqEncoder
+    embeddings:
+      cat_id:
+        in: 400
+      level_0:
+        in: 400
+      level_1:
+        in: 400
+      level_2:
+        in: 400
+      hour:
+        in: 25
+      weekday:
+        in: 8
+    was_logified: false
+    numeric_values: {}
+    log_scale_factor: 1
+
+trainer:
+  fast_dev_run: false

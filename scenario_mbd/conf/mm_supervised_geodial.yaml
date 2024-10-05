@@ -1,0 +1,118 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/multimodal_parquet_supervised
+  - inference/inference_trx
+
+seed_everything: 42
+logger_name: mm_supervised_geodial_${fold}
+model_path: scenario_mbd/models/${logger_name}.p
+
+supervised_settings: true
+inference_run: false
+downstream_run: false
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.coles.MultiModalSupervisedIterableDataset
+    source_features:
+        dial:
+          - embedding
+          - event_time
+        geo:
+          - geohash_4
+          - geohash_5
+          - geohash_6
+          - event_time
+    source_names:
+      - dial
+      - geo
+    target_name: targets
+    target_dtype: int
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.coles.MultiModalSupervisedIterableDataset
+    source_features:
+        dial:
+          - embedding
+          - event_time
+        geo:
+          - geohash_4
+          - geohash_5
+          - geohash_6
+          - event_time
+    source_names:
+      - dial
+      - geo
+    target_name: targets
+    target_dtype: int
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 512
+  train_num_workers: 16
+  valid_batch_size: 256
+  valid_num_workers: 16
+
+trainer:
+  accelerator: gpu
+  max_epochs: 5
+  gradient_clip_val: 0.5
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: false
+
+
+pl_module:
+  _target_: ptls.frames.supervised.SequenceToTarget
+  metric_list:
+    _target_: torchmetrics.AUROC
+    task: multilabel
+  loss: 
+    _target_: torch.nn.BCELoss
+  head: 
+    _target_: torch.nn.Sequential
+    _args_:
+      - _target_: torch.nn.Linear
+        in_features: 64
+        out_features: 4
+      - _target_: torch.nn.Sigmoid
+  seq_encoder: 
+    _target_: modules.mm_supervised.MM_seq_encoder
+    seq_encoders:
+      dial: 
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          embeddings_noise: 0.003
+          linear_projection_size: 32
+          custom_embeddings:
+            embedding: 
+              _target_: ptls.nn.trx_encoder.encoders.IdentityEncoder
+              size: 768
+        type: gru
+        hidden_size: 32
+      geo: 
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          embeddings_noise: 0.003
+          embeddings:
+            geohash_4:
+              in: 10000
+              out: 64
+            geohash_5:
+              in: 10000
+              out: 64
+            geohash_6:
+              in: 10000
+              out: 64
+        type: gru
+        hidden_size: 32
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 5
+    gamma: 0.9025

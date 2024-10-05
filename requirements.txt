@@ -1,4 +1,7 @@
 pytorch-lifestream == 0.6.1
 tensorboard >=2.1.0
+pyspark
+hydra
+pytorch_lightning
 lightgbm >= 2.3.1
 xgboost >=0.90

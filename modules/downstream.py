@@ -18,12 +18,18 @@ class Downstream:
         logger,
         name_exp,
         col_id='client_id',
+        target_col_names=(
+            'target_1',
+            'target_2',
+            'target_3',
+            'target_4'
+        )
     ):
         self.train_path = train_path
         self.test_path = test_path
         self.metric = metric
         self.col_id = col_id
-        self.all_targets = ['target_1', 'target_2', 'target_3', 'target_4']
+        self.all_targets = list(target_col_names)
         self.model_conf = model_conf
         self.result_path = result_path
         self.logger = logger
@@ -48,18 +54,17 @@ class Downstream:
         self, 
         clfs
     ):
-        scores = pd.DataFrame([])
+        scores = {}
         
-        test_embeddings_curr = pd.read_parquet(self.test_path).drop_duplicates('client_id')
-        X_test = test_embeddings_curr.drop(columns=[self.col_id])
-        ids = test_embeddings_curr[self.col_id]
-        scores[self.col_id] = ids
+        test_embeddings_curr = pd.read_parquet(self.test_path).drop_duplicates(self.col_id)
+        X_test = test_embeddings_curr.drop(columns=self.drop_feat)
+        y_test = test_embeddings_curr[self.all_targets]
         
         for col_target in self.all_targets:
             clf = clfs[col_target]
-            score = clf.predict_proba(X_test)[:, 1]
-            scores[col_target] = score
-        
+            y_score = clf.predict_proba(X_test)[:, 1]
+            scores[col_target] = [self.metric(y_test, y_score)]
+        scores['name_exp'] = [self.name_exp]
         return scores
 
     def run(self):
@@ -68,7 +73,7 @@ class Downstream:
         self.logger.info('Start test ...')
         scores = self.get_scores(clfs)
         self.logger.info('Save test ...')
-        scores.to_csv(self.result_path, mode='a')
+        pd.DataFrame(scores).to_csv(self.result_path, mode='a', index=False)
         return scores
         
         

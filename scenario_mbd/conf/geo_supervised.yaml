@@ -1,0 +1,79 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_supervised_geo
+  - inference/inference_geo
+
+seed_everything: 42
+logger_name: geo_supervised_${fold}
+model_path: scenario_mbd/models/${logger_name}.p
+
+supervised_settings: true
+inference_run: false
+downstream_run: false
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.supervised.SeqToTargetIterableDataset
+    target_col_name: targets
+    target_dtype: int
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.supervised.SeqToTargetIterableDataset
+    target_col_name: targets
+    target_dtype: int
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 512
+  train_num_workers: 16
+  valid_batch_size: 128
+  valid_num_workers: 16
+
+trainer:
+  accelerator: gpu
+  max_epochs: 5
+  gradient_clip_val: 0.5
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: false
+
+
+pl_module:
+  _target_: ptls.frames.supervised.SequenceToTarget
+  metric_list:
+    _target_: torchmetrics.AUROC
+    task: multilabel
+  loss: 
+    _target_: torch.nn.BCELoss
+  head: 
+    _target_: torch.nn.Sequential
+    _args_:
+      - _target_: torch.nn.Linear
+        in_features: 64
+        out_features: 4
+      - _target_: torch.nn.Sigmoid
+  seq_encoder:
+    _target_: ptls.nn.RnnSeqEncoder
+    trx_encoder:
+      _target_: ptls.nn.TrxEncoder
+      embeddings_noise: 0.003
+      embeddings:
+        geohash_4:
+          in: 10000
+          out: 16
+        geohash_5:
+          in: 10000
+          out: 16
+        geohash_6:
+          in: 10000
+          out: 16
+    type: gru
+    hidden_size: 32
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.0001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 30
+    gamma: 0.9025

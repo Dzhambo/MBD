@@ -1,0 +1,33 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_trx
+  - inference/inference_trx
+  - downstream/downstream
+  
+seed_everything: 42
+logger_name: trx_agg_${fold}
+model_path: scenario_datafusion/models/${logger_name}.p
+embed_file_name: ${logger_name}
+
+training_run: false
+use_save_model: false
+
+pl_module:
+    _target_: ptls.nn.AggFeatureSeqEncoder
+    embeddings:
+        mcc_code:
+          in: 350
+        currency_rk:
+          in: 10
+        hour:
+          in: 25
+        weekday:
+          in: 8
+    numeric_values:
+      transaction_amt: log
+    was_logified: false
+    log_scale_factor: 1
+
+trainer:
+  fast_dev_run: false

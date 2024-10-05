@@ -1,0 +1,65 @@
+num_workers: 16
+batch_size: 256
+gpus: 1
+use_save_model: True
+multimodal: False
+dataset_train:
+     _target_: ptls.data_load.datasets.ParquetDataset
+     data_files: 
+        - scenario_mbd/data/trx/fold=0
+        - scenario_mbd/data/trx/fold=1
+        - scenario_mbd/data/trx/fold=2
+        - scenario_mbd/data/trx/fold=3
+        - scenario_mbd/data/trx/fold=4
+     i_filters:
+      - _target_: modules.processing.DeleteNan
+        col_name: trx_event_time
+      - _target_: modules.processing.DeleteNan
+        col_name: dial_event_time
+      - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+        max_seq_len: 4096
+      - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+        keep_feature_names: 
+          - client_id
+          - target_1
+          - target_2
+          - target_3
+          - target_4
+      - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+      - _target_: modules.processing.GetSplit
+        start_month: 1 
+        end_month: 12
+        col_id: client_id
+dataset_test:
+    _target_: ptls.data_load.datasets.ParquetDataset
+    data_files: 
+        - scenario_mbd/data/trx/fold=${fold}
+    i_filters:
+        - _target_: modules.processing.DeleteNan
+          col_name: trx_event_time
+        - _target_: modules.processing.DeleteNan
+          col_name: dial_event_time
+        - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+          max_seq_len: 4096
+        - _target_: ptls.data_load.iterable_processing.feature_filter.FeatureFilter
+          keep_feature_names: 
+            - client_id
+            - target_1
+            - target_2
+            - target_3
+            - target_4
+        - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+        - _target_: modules.processing.GetSplit
+          start_month: 1 
+          end_month: 12
+          col_id: client_id
+output:
+  path: scenario_mbd/data/${embed_file_name}
+  format: parquet
+
+col_id: client_id
+target_col_names:
+  - target_1
+  - target_2
+  - target_3
+  - target_4

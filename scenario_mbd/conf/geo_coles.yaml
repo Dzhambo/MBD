@@ -1,0 +1,77 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_geo
+  - inference/inference_geo
+  - downstream/downstream
+  
+seed_everything: 42
+logger_name: geo_coles_${fold}
+model_path: scenario_mbd/models/${logger_name}.p
+embed_file_name: ${logger_name}
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.coles.ColesIterableDataset
+    splitter:
+      _target_: ptls.frames.coles.split_strategy.SampleSlices
+      split_count: 5
+      cnt_min: 32
+      cnt_max: 180
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 256
+  train_num_workers: 16
+  valid_batch_size: 256
+  valid_num_workers: 16
+  
+trainer:
+  gpus: 1
+  auto_select_gpus: false
+  max_epochs: 15
+  limit_val_batches: 5000
+  gradient_clip_val: 0.5
+  deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: true
+  
+pl_module:
+  _target_: ptls.frames.coles.CoLESModule
+  validation_metric:
+    _target_: ptls.frames.coles.metric.BatchRecallTopK
+    K: 4
+    metric: cosine
+  seq_encoder:
+    _target_: ptls.nn.RnnSeqEncoder
+    trx_encoder:
+      _target_: ptls.nn.TrxEncoder
+      embeddings_noise: 0.003
+      embeddings:
+        geohash_4:
+          in: 10000
+          out: 64
+        geohash_5:
+          in: 10000
+          out: 64
+        geohash_6:
+          in: 10000
+          out: 64
+    type: gru
+    hidden_size: 256
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 3
+    gamma: 0.9025

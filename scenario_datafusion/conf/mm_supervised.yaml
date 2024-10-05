@@ -1,0 +1,152 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/multimodal_parquet_supervised
+  - inference/inference_trx
+
+seed_everything: 42
+logger_name: mm_supervised_${fold}
+model_path: scenario_datafusion/models/${logger_name}.p
+
+supervised_settings: true
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.coles.MultiModalSupervisedIterableDataset
+    source_features:
+        trx:
+            - mcc_code
+            - currency_rk
+            - transaction_amt
+            - event_time
+            - hour
+            - weekday
+        click:
+            - cat_id
+            - level_0
+            - level_1
+            - level_2
+            - event_time
+            - hour
+            - weekday
+    source_names:
+      - trx
+      - click
+    target_name: higher_education
+    target_dtype: int
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.coles.MultiModalSupervisedIterableDataset
+    source_features:
+        trx:
+            - mcc_code
+            - currency_rk
+            - transaction_amt
+            - event_time
+            - hour
+            - weekday
+        click:
+            - cat_id
+            - level_0
+            - level_1
+            - level_2
+            - event_time
+            - hour
+            - weekday
+    source_names:
+      - trx
+      - click
+    target_name: higher_education
+    target_dtype: int
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 512
+  train_num_workers: 16
+  valid_batch_size: 256
+  valid_num_workers: 16
+
+trainer:
+  accelerator: gpu
+  max_epochs: 100
+  #limit_val_batches: 5000
+  gradient_clip_val: 0.5
+  #deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: false
+
+
+pl_module:
+  _target_: ptls.frames.supervised.SequenceToTarget
+  metric_list:
+    _target_: torchmetrics.AUROC
+    #task: binary
+  loss: 
+    _target_: torch.nn.BCELoss
+  head: 
+    _target_: torch.nn.Sequential
+    _args_:
+      - _target_: torch.nn.Linear
+        in_features: 128
+        out_features: 1
+      - _target_: torch.nn.Sigmoid
+  seq_encoder: 
+    _target_: modules.mm_supervised.MM_seq_encoder
+    seq_encoders:
+      trx:
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          norm_embeddings: false
+          embeddings_noise: 0.003
+          embeddings:
+            mcc_code:
+              in: 350
+              out: 64
+            currency_rk:
+              in: 10
+              out: 4
+            hour:
+              in: 25
+              out: 16
+            weekday:
+              in: 8
+              out: 4
+          numeric_values:
+            transaction_amt: log
+        type: gru
+        hidden_size: 64
+      click: 
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          embeddings_noise: 0.003
+          embeddings:
+            cat_id:
+              in: 400
+              out: 64
+            level_0:
+              in: 400
+              out: 16
+            level_1:
+              in: 400
+              out: 8
+            level_2:
+              in: 400
+              out: 4
+            hour:
+              in: 25
+              out: 16
+            weekday:
+              in: 8
+              out: 4
+        type: gru
+        hidden_size: 64
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 5
+    gamma: 0.9025

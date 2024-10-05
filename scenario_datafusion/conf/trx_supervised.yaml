@@ -1,0 +1,92 @@
+fold: 4
+defaults:
+  - _self_
+  - dataset_unsupervised/parquet_supervised_trx
+  - inference/inference_trx
+
+seed_everything: 42
+logger_name: trx_supervised_${fold}
+model_path: scenario_datafusion/models/${logger_name}.p
+
+inference_run: false
+downstream_run: false
+
+supervised_settings: true
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: ptls.frames.supervised.SeqToTargetIterableDataset
+    target_col_name: higher_education
+    target_dtype: int
+    data: ${dataset_unsupervised.train}
+  valid_data:
+    _target_: ptls.frames.supervised.SeqToTargetIterableDataset
+    target_col_name: higher_education
+    target_dtype: int
+    data: ${dataset_unsupervised.valid}
+  train_batch_size: 512
+  train_num_workers: 16
+  valid_batch_size: 128
+  valid_num_workers: 16
+
+trainer:
+  accelerator: gpu
+  max_epochs: 30
+  #limit_val_batches: 0
+  gradient_clip_val: 0.5
+  #deterministic: true
+  checkpoints_every_n_val_epochs: 1
+  fast_dev_run: false
+
+
+pl_module:
+  _target_: ptls.frames.supervised.SequenceToTarget
+  metric_list:
+    _target_: torchmetrics.AUROC
+    #task: binary
+  loss: 
+    _target_: torch.nn.BCELoss
+  head: 
+    _target_: torch.nn.Sequential
+    _args_:
+      - _target_: torch.nn.Linear
+        in_features: 256
+        out_features: 64
+      - _target_: torch.nn.ReLU
+      - _target_: torch.nn.Linear
+        in_features: 64
+        out_features: 1
+      - _target_: torch.nn.Sigmoid
+  seq_encoder:
+    _target_: ptls.nn.RnnSeqEncoder
+    trx_encoder:
+      _target_: ptls.nn.TrxEncoder
+      norm_embeddings: false
+      embeddings_noise: 0.003
+      embeddings:
+        mcc_code:
+          in: 350
+          out: 64
+        currency_rk:
+          in: 10
+          out: 4
+        hour:
+          in: 25
+          out: 16
+        weekday:
+          in: 8
+          out: 4
+      numeric_values:
+        transaction_amt: log
+    type: gru
+    hidden_size: 256
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.0001
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 3
+    gamma: 0.9025

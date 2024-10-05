@@ -1,0 +1,89 @@
+train:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  shuffle_files: true
+  data_files:
+    - scenario_datafusion/data/mm_dataset_fold/data/mm_dataset_fold/fold=0
+    - scenario_datafusion/data/mm_dataset_fold/data/mm_dataset_fold/fold=1
+    - scenario_datafusion/data/mm_dataset_fold/data/mm_dataset_fold/fold=2
+    - scenario_datafusion/data/mm_dataset_fold/data/mm_dataset_fold/fold=3
+    - scenario_datafusion/data/mm_dataset_fold/data/mm_dataset_fold/fold=4
+  i_filters:
+      - _target_: modules.processing.DeleteNan
+        col_name: mcc_code
+      - _target_: modules.processing.DeleteNan
+        col_name: cat_id
+      - _target_: modules.processing.DeleteNan
+        col_name: user_id
+      - _target_: modules.processing.TypeProc
+        col_name: transaction_amt
+      - _target_: ptls.data_load.iterable_processing.add_modal_name.AddModalName
+        source: trx
+        cols:
+          - mcc_code
+          - currency_rk
+          - transaction_amt
+      - _target_: ptls.data_load.iterable_processing.add_modal_name.AddModalName
+        source: click
+        cols:
+          - cat_id
+          - level_0
+          - level_1
+          - level_2
+      - _target_: ptls.data_load.iterable_processing.FeatureFilter
+        drop_feature_names:
+            - user_id
+            - higher_education
+            - new_uid
+      - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+        min_seq_len: 32
+      - _target_: ptls.data_load.iterable_processing.ISeqLenLimit
+        max_seq_len: 4096
+      - _target_: ptls.data_load.iterable_processing.time_proc.TimeProcMultimodal
+        source: trx
+        time_col: trx_event_time
+      - _target_: ptls.data_load.iterable_processing.time_proc.TimeProcMultimodal
+        source: click
+        time_col: click_event_time
+      - _target_: ptls.data_load.iterable_processing.ToTorch
+valid:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  data_files:
+    - scenario_datafusion/data/mm_dataset_fold/fold=${fold}
+  i_filters:
+          - _target_: modules.processing.DeleteNan
+            col_name: mcc_code
+          - _target_: modules.processing.DeleteNan
+            col_name: cat_id
+          - _target_: modules.processing.DeleteNan
+            col_name: user_id
+          - _target_: modules.processing.TypeProc
+            col_name: transaction_amt
+          - _target_: ptls.data_load.iterable_processing.add_modal_name.AddModalName
+            source: trx
+            cols:
+              - mcc_code
+              - currency_rk
+              - transaction_amt
+          - _target_: ptls.data_load.iterable_processing.add_modal_name.AddModalName
+            source: click
+            cols:
+              - cat_id
+              - level_0
+              - level_1
+              - level_2
+          - _target_: ptls.data_load.iterable_processing.FeatureFilter
+            drop_feature_names:
+                - user_id
+                - higher_education
+                - new_uid
+          - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+            min_seq_len: 32
+          - _target_: ptls.data_load.iterable_processing.ISeqLenLimit
+            max_seq_len: 4096
+          - _target_: ptls.data_load.iterable_processing.time_proc.TimeProcMultimodal
+            source: trx
+            time_col: trx_event_time
+          - _target_: ptls.data_load.iterable_processing.time_proc.TimeProcMultimodal
+            source: click
+            time_col: click_event_time
+          - _target_: ptls.data_load.iterable_processing.ToTorch

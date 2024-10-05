@@ -1,0 +1,39 @@
+train:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  data_files: 
+    - scenario_mbd/data/mm_supervised/fold=0
+    - scenario_mbd/data/mm_supervised/fold=1
+    - scenario_mbd/data/mm_supervised/fold=2
+    - scenario_mbd/data/mm_supervised/fold=3
+    - scenario_mbd/data/mm_supervised/fold=4
+  i_filters:
+    - _target_: modules.ptls.data_load.iterable_processing.ToEmptyTensor
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 32
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+    - _target_: modules.processing.TargetToTorch
+      col_target: targets
+    - _target_: modules.processing.GetSplit
+        start_month: 1 
+        end_month: 12
+        col_id: client_id
+  shuffle_files: true
+valid:
+  _target_: ptls.data_load.datasets.ParquetDataset
+  data_files: 
+    - scenario_mbd/data/mm_supervised/fold=${fold}
+  i_filters:
+    - _target_: modules.ptls.data_load.iterable_processing.ToEmptyTensor
+    - _target_: ptls.data_load.iterable_processing.SeqLenFilter
+      min_seq_len: 32
+    - _target_: ptls.data_load.iterable_processing.iterable_seq_len_limit.ISeqLenLimit
+      max_seq_len: 4096
+    - _target_: ptls.data_load.iterable_processing.to_torch_tensor.ToTorch
+    - _target_: modules.processing.TargetToTorch
+      col_target: targets
+    - _target_: modules.processing.GetSplit
+        start_month: 1 
+        end_month: 12
+        col_id: client_id

@@ -1,1 +1,10 @@
 .DS_Store
+.ipynb_checkpoints
+spark_localdir
+__pycache__
+pytorch-lifestream
+outputs
+lightning_logs
+models
+data
+pictures

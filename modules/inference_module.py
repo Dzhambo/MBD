@@ -5,16 +5,31 @@ import numpy as np
 from itertools import chain
 from ptls.data_load.padded_batch import PaddedBatch
 from datetime import datetime
+from ptls.custom_layers import StatPooling
+from ptls.nn.seq_step import LastStepEncoder
 
 
 class InferenceModuleMultimodal(pl.LightningModule):
-    def __init__(self, model, pandas_output=True, drop_seq_features=True, model_out_name='out'):
+    def __init__(
+        self,
+        model,
+        pandas_output=True,
+        col_id='client_id',
+        target_col_names=None,
+        model_out_name='emb',
+        model_type='notab'
+    ):
         super().__init__()
 
         self.model = model
         self.pandas_output = pandas_output
-        self.drop_seq_features = drop_seq_features
+        self.target_col_names = target_col_names
+        self.col_id = col_id
         self.model_out_name = model_out_name
+        self.model_type = model_type
+
+        self.stat_pooler = StatPooling()
+        self.last_step = LastStepEncoder()
 
     def forward(self, x):
         x_len = len(x)
@@ -22,21 +37,25 @@ class InferenceModuleMultimodal(pl.LightningModule):
             x, batch_ids, target_cols = x
         else: 
             x, batch_ids = x
+        if 'seq_encoder' in dir(self.model):
+            out = self.model.seq_encoder(x)
+        else:
+            out = self.model(x)
             
-        out = self.model(x)
         if x_len == 3:
             target_cols = torch.tensor(target_cols)
             x_out = {
-                'client_id': batch_ids,
-                'target_1': target_cols[:, 0],
-                'target_2': target_cols[:, 1],
-                'target_3': target_cols[:, 2],
-                'target_4': target_cols[:, 3],
+                self.col_id: batch_ids,
                 self.model_out_name: out
             }
+            if len(target_cols.size()) > 1:
+                for idx, target_col in enumerate(self.target_col_names):
+                    x_out[target_col] = target_cols[:, idx]
+            else: 
+                x_out[self.target_col_names[0]] = target_cols[:, idx]
         else:
             x_out = {
-                'client_id': batch_ids,
+                self.col_id: batch_ids,
                 self.model_out_name: out
             }
 

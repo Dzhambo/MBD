@@ -1,0 +1,162 @@
+fold: 4
+
+defaults:
+  - _self_
+  - dataset_unsupervised/multimodal_parquet_supervised
+
+logger_name: matching_trxdial_${fold}
+
+inference_run: false
+downstream_run: false
+
+trainer:
+    max_epochs: 50
+    accelerator: gpu
+    enable_progress_bar: True
+    gradient_clip_val: 0.5
+    log_every_n_steps: 50
+    limit_val_batches: 512
+
+data_module:
+  _target_: ptls.frames.PtlsDataModule
+  train_data:
+    _target_: modules.matching.MultiModalDiffSplitIterableDataset
+    splitters:
+        trx:
+          _target_: ptls.frames.coles.split_strategy.SampleSlices
+          split_count: 2
+          cnt_min: 32
+          cnt_max: 180
+        dial:
+          _target_: ptls.frames.coles.split_strategy.SampleSlices
+          split_count: 2
+          cnt_min: 2
+          cnt_max: 10
+    data: ${dataset_unsupervised.train}
+    source_features:
+        trx:
+          - event_type
+          - event_subtype
+          - src_type11
+          - src_type12
+          - dst_type11
+          - dst_type12
+          - src_type22
+          - src_type32
+          - event_time
+        dial:
+          - embedding
+          - event_time
+    col_id: client_id
+    col_time: event_time
+    source_names:
+        - trx
+        - dial
+  valid_data:
+    _target_: modules.matching.MultiModalDiffSplitIterableDataset
+    splitters:
+        trx:
+          _target_: ptls.frames.coles.split_strategy.NoSplit
+        dial:
+          _target_: ptls.frames.coles.split_strategy.NoSplit
+    data: ${dataset_unsupervised.valid}
+    source_features:
+        trx:
+          - event_type
+          - event_subtype
+          - src_type11
+          - src_type12
+          - dst_type11
+          - dst_type12
+          - src_type22
+          - src_type32
+          - event_time
+        dial:
+          - embedding
+          - event_time
+    col_id: user_id
+    col_time: event_time
+    source_names:
+        - trx
+        - dial
+  train_batch_size: 256
+  train_num_workers: 255
+  valid_batch_size: 256
+  valid_num_workers: 255
+
+pl_module:
+  _target_: modules.matching.M3CoLESModule
+  validation_metric:
+    _target_: ptls.frames.coles.metric.BatchRecallTopK
+    K: 1
+    metric: cosine
+  head:
+    _target_: ptls.nn.Head
+    input_size: 128
+    use_norm_encoder: True
+    hidden_layers_sizes: 
+      - 128
+      - 128
+    objective: "regression"
+    num_classes: 128
+  seq_encoders:
+      trx:
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          norm_embeddings: false
+          embeddings_noise: 0.003
+          linear_projection_size: 32
+          embeddings:
+            event_type:
+              in: 58
+              out: 24
+            event_subtype:
+              in: 59
+              out: 24
+            src_type11:
+              in: 85
+              out: 24
+            src_type12:
+              in: 349
+              out: 24
+            dst_type11:
+              in: 84
+              out: 24
+            dst_type12:
+              in: 417
+              out: 12
+            src_type22:
+              in: 90
+              out: 24
+            src_type32:
+              in: 91
+              out: 24
+          numeric_values:
+            amount: log
+        type: gru
+        hidden_size: 128
+      dial: 
+        _target_: ptls.nn.RnnSeqEncoder
+        trx_encoder:
+          _target_: ptls.nn.TrxEncoder
+          embeddings_noise: 0.003
+          linear_projection_size: 32
+          custom_embeddings:
+            embedding: 
+              _target_: ptls.nn.trx_encoder.encoders.IdentityEncoder
+              size: 768
+        type: gru
+        hidden_size: 128
+  loss:
+    _target_: ptls.frames.coles.losses.SoftmaxLoss
+  optimizer_partial:
+    _partial_: true
+    _target_: torch.optim.AdamW
+    lr: 0.001
+    weight_decay: 1e-4
+  lr_scheduler_partial:
+    _partial_: true
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 1
+    gamma: 0.9
