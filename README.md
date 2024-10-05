@@ -13,21 +13,21 @@ This repository contains code to reproduce the benchmark results obtained in the
 - **scenario_mbd** - all experinemts for MBD dataset
 - **scenario_datafusion** - all experinemts for Datafusion dataset
 
-- **conf** - all configuration files
-- **modules** - common code for the model pipelines
-- **models** - models are saved here.
-- **data** - store for datasets and embeddings from different methods
-- **notebooks** 
-    - **Preprocessing** - data preprocessing for each modality for subsequent training and testing
-    For MBD dataset:
-        - **Geo**, **Trx**, **Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
-        - **Fusion**
-            - late fusion approaches: Concatenation and Blending.
-            - Python and PySpark code for training Gradient Boosting models are provided. 
-            - Multimodal matching task
+    - **conf** - all configuration files
+    - **modules** - common code for the model pipelines
+    - **models** - models are saved here.
+    - **data** - store for datasets and embeddings from different methods
+    - **notebooks** 
+        - **Preprocessing** - data preprocessing for each modality for subsequent training and testing
+        For MBD dataset:
+            - **Geo**, **Trx**, **Dialogs** - unimodal experiments for various modalities are presented in Jupyter notebooks
+            - **Fusion**
+                - late fusion approaches: Concatenation and Blending.
+                - Python and PySpark code for training Gradient Boosting models are provided. 
+                - Multimodal matching task
 
-- **scripts**  
-    - `*.sh` files with configured pipeline runs
+    - **scripts**  
+        - `*.sh` files with configured pipeline runs
 
 
 ## Hardware and software requirements
