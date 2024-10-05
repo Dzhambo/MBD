@@ -5,6 +5,9 @@ __pycache__
 pytorch-lifestream
 outputs
 lightning_logs
-models
-data
+
+models/*
+!models/.keep 
+data/*
+!data/.keep 
 pictures
