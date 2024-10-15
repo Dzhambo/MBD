@@ -1,6 +1,6 @@
 pytorch-lifestream==0.6.0
 tensorboard >=2.1.0
-pyspark==3.3.0
+pyspark==3.3.3
 hydra-core==1.2.0
 pytorch_lightning==2.3.3
 lightgbm==3.3.2
